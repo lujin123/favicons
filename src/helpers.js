@@ -11,7 +11,7 @@ const Jimp = require("jimp");
 const svg2png = require("svg2png");
 const PLATFORM_OPTIONS = require("./config/platform-options.json");
 
-module.exports = function(options) {
+module.exports = function (options) {
   function directory(path) {
     return path.substr(-1) === "/" ? path : `${path}/`;
   }
@@ -22,7 +22,11 @@ module.exports = function(options) {
 
   function log(context, message) {
     if (options.logging) {
-      const { magenta, green, yellow } = colors;
+      const {
+        magenta,
+        green,
+        yellow
+      } = colors;
 
       message = message.replace(/ \d+(x\d+)?/g, item => magenta(item));
       message = message.replace(/#([0-9a-f]{3}){1,2}/g, item => magenta(item));
@@ -31,7 +35,12 @@ module.exports = function(options) {
   }
 
   function parseColor(hex) {
-    const { r, g, b, a } = color(hex).toRgb();
+    const {
+      r,
+      g,
+      b,
+      a
+    } = color(hex).toRgb();
 
     return Jimp.rgbaToInt(r, g, b, a * 255);
   }
@@ -43,7 +52,10 @@ module.exports = function(options) {
 
         if (Buffer.isBuffer(src)) {
           try {
-            return Promise.resolve([{ size: sizeOf(src), file: src }]);
+            return Promise.resolve([{
+              size: sizeOf(src),
+              file: src
+            }]);
           } catch (error) {
             return Promise.reject(new Error("Invalid image buffer"));
           }
@@ -54,9 +66,7 @@ module.exports = function(options) {
             return Promise.reject(new Error("No source provided"));
           }
 
-          return Promise.all(src.map(this.source.bind(this))).then(results =>
-            [].concat(...results)
-          );
+          return Promise.all(src.map(this.source.bind(this))).then(results => [].concat(...results));
         } else {
           return Promise.reject(new Error("Invalid source type provided"));
         }
@@ -64,13 +74,11 @@ module.exports = function(options) {
 
       preparePlatformOptions(platform) {
         const parameters =
-          typeof options.icons[platform] === "object"
-            ? options.icons[platform]
-            : {};
+          typeof options.icons[platform] === "object" ?
+          options.icons[platform] : {};
 
         for (const key of Object.keys(parameters)) {
-          if (
-            !(key in PLATFORM_OPTIONS) ||
+          if (!(key in PLATFORM_OPTIONS) ||
             !PLATFORM_OPTIONS[key].platforms.includes(platform)
           ) {
             throw new Error(
@@ -80,7 +88,10 @@ module.exports = function(options) {
         }
 
         for (const key of Object.keys(PLATFORM_OPTIONS)) {
-          const { platforms, defaultTo } = PLATFORM_OPTIONS[key];
+          const {
+            platforms,
+            defaultTo
+          } = PLATFORM_OPTIONS[key];
 
           if (!(key in parameters) && platforms.includes(platform)) {
             parameters[key] = defaultTo;
@@ -111,8 +122,8 @@ module.exports = function(options) {
             link = $("*").is("link"),
             attribute = link ? "href" : "content",
             value = $("*")
-              .first()
-              .attr(attribute);
+            .first()
+            .attr(attribute);
 
           if (path.extname(value)) {
             $("*")
@@ -141,7 +152,7 @@ module.exports = function(options) {
           log("Files:create", `Creating file: ${name}`);
           if (name === "manifest.json") {
             properties.name = options.appName;
-            properties.short_name = options.appName;
+            properties.short_name = options.shortName || options.appName;
             properties.description = options.appDescription;
             properties.dir = options.dir;
             properties.lang = options.lang;
@@ -160,10 +171,9 @@ module.exports = function(options) {
             properties.developer.url = options.developerURL;
             properties.icons = Object.keys(properties.icons).reduce(
               (obj, key) =>
-                Object.assign(obj, {
-                  [key]: relative(properties.icons[key])
-                }),
-              {}
+              Object.assign(obj, {
+                [key]: relative(properties.icons[key])
+              }), {}
             );
             properties = JSON.stringify(properties, null, 2);
           } else if (name === "browserconfig.xml") {
@@ -188,7 +198,10 @@ module.exports = function(options) {
           } else if (/\.html$/.test(name)) {
             properties = properties.join("\n");
           }
-          return resolve({ name, contents: properties });
+          return resolve({
+            name,
+            contents: properties
+          });
         });
       }
     },
@@ -230,7 +243,10 @@ module.exports = function(options) {
 
         if (svgSource) {
           log("Image:render", `Rendering SVG to ${width}x${height}`);
-          promise = svg2png(svgSource.file, { height, width }).then(Jimp.read);
+          promise = svg2png(svgSource.file, {
+            height,
+            width
+          }).then(Jimp.read);
         } else {
           const sideSize = Math.max(width, height);
 
@@ -303,11 +319,11 @@ module.exports = function(options) {
 
         return new Promise((resolve, reject) =>
           canvas
-            .composite(image, offset, offset)
-            .getBuffer(
-              Jimp.MIME_PNG,
-              (error, result) => (error ? reject(error) : resolve(result))
-            )
+          .composite(image, offset, offset)
+          .getBuffer(
+            Jimp.MIME_PNG,
+            (error, result) => (error ? reject(error) : resolve(result))
+          )
         );
       }
     }
